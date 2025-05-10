@@ -1,0 +1,402 @@
+{
+    "name": "Stakeholder Management",
+    "flow": [
+        {
+            "id": 1,
+            "module": "jotform:watchForSubmissions",
+            "version": 1,
+            "parameters": {
+                "__IMTHOOK__": 2289766
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0,
+                    "name": "Jotform collect Raw Script"
+                },
+                "restore": {
+                    "parameters": {
+                        "__IMTHOOK__": {
+                            "label": "Meeting Summarizer Jotform",
+                            "data": {
+                                "editable": "true"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTHOOK__",
+                        "type": "hook:jotform",
+                        "label": "Webhook",
+                        "required": true
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "formID",
+                        "type": "number",
+                        "label": "Form ID"
+                    },
+                    {
+                        "name": "submissionID",
+                        "type": "number",
+                        "label": "Submission ID"
+                    },
+                    {
+                        "name": "webhookURL",
+                        "type": "text",
+                        "label": "Webhook URL"
+                    },
+                    {
+                        "name": "ip",
+                        "type": "text",
+                        "label": "IP"
+                    },
+                    {
+                        "name": "fromTitle",
+                        "type": "text",
+                        "label": "Form title"
+                    },
+                    {
+                        "name": "pretty",
+                        "type": "text",
+                        "label": "Pretty"
+                    },
+                    {
+                        "name": "username",
+                        "type": "text",
+                        "label": "Username"
+                    },
+                    {
+                        "name": "rawRequest",
+                        "type": "text",
+                        "label": "RAW request"
+                    },
+                    {
+                        "name": "type",
+                        "type": "text",
+                        "label": "Type"
+                    },
+                    {
+                        "name": "request",
+                        "label": "Request",
+                        "type": "collection",
+                        "spec": [
+                            {
+                                "name": "slug",
+                                "label": "Slug",
+                                "type": "text"
+                            },
+                            {
+                                "name": "event_id",
+                                "label": "Event ID",
+                                "type": "text"
+                            },
+                            {
+                                "name": "path",
+                                "label": "Path",
+                                "type": "text"
+                            },
+                            {
+                                "name": "q4_input4",
+                                "label": "<p>This form will:</p>\r\n<p><br />1. Run a raw transcript through an AI to summarize it with a custom prompt<br />2. Make a clean Google Doc<br />3. Create a draft email for the PM to send it to the stakeholders</p>",
+                                "type": "text"
+                            },
+                            {
+                                "name": "q5_meetingTitle",
+                                "label": "Meeting Title:",
+                                "type": "text"
+                            },
+                            {
+                                "name": "q6_projectName",
+                                "label": "Project Name:",
+                                "type": "text"
+                            },
+                            {
+                                "name": "q7_meetingTranscript",
+                                "label": "Meeting Transcript:",
+                                "type": "text"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "formTitle",
+                        "label": "Form Title",
+                        "type": "text"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 3,
+            "module": "groq:chatCompletion",
+            "version": 1,
+            "parameters": {
+                "__IMTCONN__": 8068499
+            },
+            "mapper": {
+                "model": "llama-3.1-8b-instant",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are an experienced PM that keeps information concise and relevant"
+                    },
+                    {
+                        "role": "user",
+                        "content": "\r\nSummarize the following meeting transcript into a clean, plain-text meeting summary. Do not include any formatting marks like bullets, symbols, or special characters. The summary should be organized clearly with section titles written out. The text should be immediately ready for copy-paste into a document or email. Include these sections:\n\nMeeting Title\nProject Name (if provided)\nDate and Time\nAttendees\nMeeting Purpose\nSummary of Discussions: key topics, decisions made, challenges\nAction Items: list of tasks, who is responsible, and deadlines (as plain text, not a table)\nNext Steps: include date of next meeting if known\nKey Insights or Takeaways\n\nThis is the transcript:\n{{1.request.q7_meetingTranscript}}"
+                    }
+                ],
+                "max_tokens": "2000",
+                "response_format": "text"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 411,
+                    "y": 0,
+                    "name": "Groq process Script"
+                },
+                "restore": {
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "label": "My Groq connection",
+                            "data": {
+                                "scoped": "true",
+                                "connection": "groq"
+                            }
+                        }
+                    },
+                    "expect": {
+                        "model": {
+                            "mode": "chose",
+                            "label": "llama-3.1-8b-instant"
+                        },
+                        "messages": {
+                            "mode": "chose",
+                            "items": [
+                                {
+                                    "role": {
+                                        "mode": "chose",
+                                        "label": "System"
+                                    }
+                                },
+                                {
+                                    "role": {
+                                        "mode": "chose",
+                                        "label": "User"
+                                    }
+                                }
+                            ]
+                        },
+                        "response_format": {
+                            "mode": "chose",
+                            "label": "Text"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:groq",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "model",
+                        "type": "select",
+                        "label": "Model",
+                        "required": true
+                    },
+                    {
+                        "name": "messages",
+                        "type": "array",
+                        "label": "Messages",
+                        "required": true,
+                        "spec": [
+                            {
+                                "name": "role",
+                                "type": "select",
+                                "label": "Role",
+                                "options": [
+                                    {
+                                        "label": "System",
+                                        "value": "system"
+                                    },
+                                    {
+                                        "label": "User",
+                                        "value": "user"
+                                    },
+                                    {
+                                        "label": "Assistant",
+                                        "value": "assistant"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "content",
+                                "type": "text",
+                                "label": "Content"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "max_tokens",
+                        "type": "number",
+                        "label": "Max tokens returned"
+                    },
+                    {
+                        "name": "temperature",
+                        "type": "number",
+                        "label": "Temperature"
+                    },
+                    {
+                        "name": "response_format",
+                        "type": "select",
+                        "label": "Response Format",
+                        "validate": {
+                            "enum": [
+                                "text",
+                                "json_object"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "top_p",
+                        "type": "number",
+                        "label": "Top P"
+                    },
+                    {
+                        "name": "frequency_penalty",
+                        "type": "number",
+                        "label": "Frequency Penalty"
+                    },
+                    {
+                        "name": "seed",
+                        "type": "number",
+                        "label": "Seed"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 4,
+            "module": "google-docs:createADocument",
+            "version": 1,
+            "parameters": {
+                "__IMTCONN__": 8069407
+            },
+            "mapper": {
+                "name": "Meeting Summary : {{1.request.q6_projectName}} - {{1.request.q5_meetingTitle}}",
+                "content": "{{3.choices[].message.content}}",
+                "destination": "drive",
+                "header": false,
+                "footer": false,
+                "folderId": "1A3mII7y2Rt3iKq6mUXKnpM36Y0Vitxbw"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 769,
+                    "y": -1,
+                    "name": "Create GDoc Meeting Minutes"
+                },
+                "restore": {
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "label": "Meeting summarizer Docs",
+                            "data": {
+                                "scoped": "true",
+                                "connection": "google"
+                            }
+                        }
+                    },
+                    "expect": {
+                        "destination": {
+                            "label": "My Drive"
+                        },
+                        "folderId": {
+                            "mode": "edit",
+                            "path": []
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:google",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "name",
+                        "type": "text",
+                        "label": "Name",
+                        "required": true
+                    },
+                    {
+                        "name": "content",
+                        "type": "text",
+                        "label": "Content",
+                        "required": true
+                    },
+                    {
+                        "name": "destination",
+                        "type": "select",
+                        "label": "Choose a Drive",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "drive",
+                                "share",
+                                "team"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "header",
+                        "type": "boolean",
+                        "label": "Insert a Header",
+                        "required": true
+                    },
+                    {
+                        "name": "footer",
+                        "type": "boolean",
+                        "label": "Insert a Footer",
+                        "required": true
+                    },
+                    {
+                        "name": "folderId",
+                        "type": "folder",
+                        "label": "New Document's Location",
+                        "required": true
+                    }
+                ]
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu2.make.com",
+        "notes": []
+    }
+}
